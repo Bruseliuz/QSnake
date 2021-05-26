@@ -26,6 +26,8 @@ BLACK = (0,0,0)
 BLOCK_SIZE = 20
 SPEED = 20
 
+
+
 class SnakeGame:
     
     def __init__(self, w=640, h=480):
@@ -76,6 +78,7 @@ class SnakeGame:
             #    elif event.key == pygame.K_DOWN:
             #        self.direction = Direction.DOWN
         
+        previous_head_location = self.head
         # 2. move
         self._move(action) # update the head
         self.snake.insert(0, self.head)
@@ -88,13 +91,20 @@ class SnakeGame:
             game_over = True
             return reward, game_over, self.score
             
+        
+        #print(self.food - self.head)  
+        
         # 4. place new food or just move
         if self.head == self.food:
             reward = 10
             self.score += 1
             self._place_food()
+        elif(abs((previous_head_location.x + previous_head_location.y) - (self.food.x + self.food.y)) > abs((self.head.x + self.head.y) - (self.food.x + self.food.y))):
+            reward += 1
+            self.snake.pop()
         else:
             self.snake.pop()
+        
         
         # 5. update ui and clock
         self._update_ui()

@@ -4,8 +4,8 @@ import numpy as np
 from collections import deque
 from snake_game_human import SnakeGame, Direction, Point
 
-epsilon = 0.2
-q_values = np.zeros((11,3), dtype=int)
+epsilon = 0.8
+q_values = np.zeros((2**11,3))
 gamma = 0.99
 num_episodes = 1000
 discount = 0.8
@@ -15,7 +15,6 @@ class Agent:
 
     def __init__(self):
         pass
-        #print(np.argmax(q_values[self.get_state()]))
 
     def get_state(self, game):
         head = game.snake[0]
@@ -64,15 +63,27 @@ class Agent:
             game.food.y < game.head.y,
             game.food.y > game.head.y
         ]
-        return np.array(state, dtype=int)
-    # Returnerar bästa action baserat på Q-värden, om random är mindre än epsilon: returnera random action.
-    def get_next_action(self, game):
+        return np.array(state)
+
+    def get_state_number(self, game):
+        state_number = 0
+        for i in range(11):
+            state_number += 2**i*self.get_state(game)[i]
+        #print(state_number)
+        return state_number
+
+    # Returnerar bästa action baserat på q_values-värden, om random är mindre än epsilon: returnera random action.
+    def get_next_action(self, game, state):
         return_move = [0,0,0]
         if np.random.random() < epsilon:
-            print(np.argmax(q_values[self.get_state(game),:]))
-            return_move[np.argmax(q_values[self.get_state(game),:])] = 1
+            #print(np.argmax(q_values[self.get_state(game),:]))
+            possible_qs = q_values[state,:]
+            print(np.argmax(possible_qs))
+            return_move[np.argmax(possible_qs)] = 1
+            
+            #return_move[np.argmax(q_values[self.get_state(game),:])] = 1
         else: 
-            return_move[random.randint(0,2)] = 1
+            return_move = random.randint(0,2)
 
         return np.array(return_move)
 
@@ -82,32 +93,37 @@ class Agent:
 def train():
     game = SnakeGame()
     agent = Agent()
-    print(q_values.shape)
+
+    state = agent.get_state_number(game)
 
     while True:
        
        # Hämta gamla statet
-        old_state = agent.get_state(game)
+        
 
         # Hämta nästa action
-        move = agent.get_next_action(game)
+        move = agent.get_next_action(game, state)
 
         # Utför action
         reward, done, score = game.play_step(move)
 
-
         # Hämta nya statet
-        state_new = agent.get_state(game)
-        previous_q_value = q_values[old_state][move]
-        print(previous_q_value)
+        state_new = agent.get_state_number(game)
         
-        td = reward + (discount * np.max(q_values[state_new])) - previous_q_value
-
-        new_q_values =  previous_q_value + (learn_rate * td)
+        #print(reward)
+        q_values[state, move] = reward + discount * np.max(q_values[state_new, :])
         
-        q_values[old_state][move] = new_q_values
+        #print(q_values[state, move])
+        state = state_new
+        
+        #td = reward + (discount * np.max(q_values[state_new])) - previous_q_value
+#
+        #new_q_values =  previous_q_value + (learn_rate * td)
+        #
+        #q_values[old_state][move] = new_q_values
+#
+        #agent.train_memory(old_state, move, reward, state_new, done)
 
-        agent.train_memory(old_state, move, reward, state_new, done)
 
         if done:
             game.game_reset()

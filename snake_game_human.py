@@ -83,7 +83,7 @@ class SnakeGame:
         # 3. check if game over
         reward = 0
         game_over = False
-        if self.is_collision() or self.frame_iteration > 100*len(self.snake):
+        if self.is_collision():
             reward = -10
             game_over = True
             return reward, game_over, self.score

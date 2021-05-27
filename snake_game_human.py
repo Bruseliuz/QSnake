@@ -5,7 +5,7 @@ from collections import namedtuple
 import numpy as np
 
 pygame.init()
-font = pygame.font.Font('arial.ttf', 25)
+font = pygame.font.Font('arial.ttf', 12)
 #font = pygame.font.SysFont('arial', 25)
 
 class Direction(Enum):
@@ -30,7 +30,7 @@ SPEED = 20
 
 class SnakeGame:
     
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=80, h=80):
         self.w = w
         self.h = h
         # init display
@@ -103,6 +103,7 @@ class SnakeGame:
             reward += 1
             self.snake.pop()
         else:
+            reward -= 1
             self.snake.pop()
         
         
@@ -133,7 +134,7 @@ class SnakeGame:
             
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
         
-        text = font.render("Score: " + str(self.score), True, WHITE)
+        text = font.render("Score: " + str(self.score) + " Iterations: " + str(self.frame_iteration), True, WHITE)
         self.display.blit(text, [0, 0])
         pygame.display.flip()
         

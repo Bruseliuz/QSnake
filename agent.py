@@ -4,8 +4,8 @@ import numpy as np
 from collections import deque
 from snake_game_human import SnakeGame, Direction, Point
 
-epsilon = 0.8
-q_values = np.zeros((2**11,3))
+
+q_values = np.zeros((2**7,3))
 gamma = 0.99
 num_episodes = 1000
 discount = 0.8
@@ -14,7 +14,7 @@ learn_rate = 0.9
 class Agent:
 
     def __init__(self):
-        pass
+        self.epsilon = 0.9
 
     def get_state(self, game):
         head = game.snake[0]
@@ -51,10 +51,10 @@ class Agent:
             (direction_down and game.is_collision(head_right)),
 
             #Move direction
-            direction_left,
-            direction_right,
-            direction_up,
-            direction_down,
+            #direction_left,
+            #direction_right,
+            #direction_up,
+            #direction_down,
             
             #Food location
 
@@ -63,11 +63,11 @@ class Agent:
             game.food.y < game.head.y,
             game.food.y > game.head.y
         ]
-        return np.array(state)
+        return np.array(state, dtype=int)
 
     def get_state_number(self, game):
         state_number = 0
-        for i in range(11):
+        for i in range(7):
             state_number += 2**i*self.get_state(game)[i]
         #print(state_number)
         return state_number
@@ -75,15 +75,15 @@ class Agent:
     # Returnerar bästa action baserat på q_values-värden, om random är mindre än epsilon: returnera random action.
     def get_next_action(self, game, state):
         return_move = [0,0,0]
-        if np.random.random() < epsilon:
+        if np.random.random() < self.epsilon:
             #print(np.argmax(q_values[self.get_state(game),:]))
             possible_qs = q_values[state,:]
-            print(np.argmax(possible_qs))
+            #print(np.argmax(possible_qs))
             return_move[np.argmax(possible_qs)] = 1
             
             #return_move[np.argmax(q_values[self.get_state(game),:])] = 1
         else: 
-            return_move = random.randint(0,2)
+            return_move[random.randint(0,2)] = 1
 
         return np.array(return_move)
 
@@ -93,7 +93,7 @@ class Agent:
 def train():
     game = SnakeGame()
     agent = Agent()
-
+    highest_score = 0
     state = agent.get_state_number(game)
 
     while True:
@@ -107,22 +107,16 @@ def train():
         # Utför action
         reward, done, score = game.play_step(move)
 
+        if (score > highest_score):
+            highest_score = score
+
         # Hämta nya statet
         state_new = agent.get_state_number(game)
         
-        #print(reward)
         q_values[state, move] = reward + discount * np.max(q_values[state_new, :])
         
         #print(q_values[state, move])
         state = state_new
-        
-        #td = reward + (discount * np.max(q_values[state_new])) - previous_q_value
-#
-        #new_q_values =  previous_q_value + (learn_rate * td)
-        #
-        #q_values[old_state][move] = new_q_values
-#
-        #agent.train_memory(old_state, move, reward, state_new, done)
 
 
         if done:

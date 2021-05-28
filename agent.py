@@ -5,7 +5,7 @@ from collections import deque
 from snake_game_human import SnakeGame, Direction, Point
 
 
-q_values = np.zeros((2**7,3))
+q_values = np.zeros((2**11,3))
 gamma = 0.99
 num_episodes = 1000
 discount = 0.8
@@ -51,10 +51,10 @@ class Agent:
             (direction_down and game.is_collision(head_right)),
 
             #Move direction
-            #direction_left,
-            #direction_right,
-            #direction_up,
-            #direction_down,
+            direction_left,
+            direction_right,
+            direction_up,
+            direction_down,
             
             #Food location
 
@@ -67,7 +67,7 @@ class Agent:
 
     def get_state_number(self, game):
         state_number = 0
-        for i in range(7):
+        for i in range(11):
             state_number += 2**i*self.get_state(game)[i]
         #print(state_number)
         return state_number
@@ -76,9 +76,7 @@ class Agent:
     def get_next_action(self, game, state):
         return_move = [0,0,0]
         if np.random.random() < self.epsilon:
-            #print(np.argmax(q_values[self.get_state(game),:]))
             possible_qs = q_values[state,:]
-            #print(np.argmax(possible_qs))
             return_move[np.argmax(possible_qs)] = 1
             
             #return_move[np.argmax(q_values[self.get_state(game),:])] = 1
@@ -100,7 +98,6 @@ def train():
        
        # Hämta gamla statet
         
-
         # Hämta nästa action
         move = agent.get_next_action(game, state)
 
@@ -114,8 +111,9 @@ def train():
         state_new = agent.get_state_number(game)
         
         q_values[state, move] = reward + discount * np.max(q_values[state_new, :])
+        print(q_values[state_new, :])
         
-        #print(q_values[state, move])
+        #print(q_values[state_new, move])
         state = state_new
 
 

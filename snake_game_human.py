@@ -99,6 +99,7 @@ class SnakeGame:
             reward = 10
             self.score += 1
             self._place_food()
+            self.snake.pop()
         elif(abs((previous_head_location.x + previous_head_location.y) - (self.food.x + self.food.y)) > abs((self.head.x + self.head.y) - (self.food.x + self.food.y))):
             reward += 1
             self.snake.pop()

@@ -6,7 +6,7 @@ from collections import deque
 from snake_game_human import SnakeGame, Direction, Point
 
 gamma = 0.99
-num_episodes = 40
+num_episodes = 1000
 discount = 0.8
 learn_rate = 0.9
 
@@ -91,8 +91,9 @@ class Agent:
 def train():
     highest_score = 0
     
-    list = np.zeros(4, dtype=int)
-    arr = np.zeros(10, dtype=int)
+    scoreArray = np.array([0,0,0,0,0,0,0,0,0,0])
+    sessionScore = np.zeros(100, dtype=int)
+    sessionCounter = 0
     counter = 0
     plot_tenths = 0
     #for i in range(num_episodes):
@@ -126,31 +127,35 @@ def train():
 
 
         print(i)
+        sessionScore[sessionCounter] = score
+        print(score, " Added to session")
+        sessionCounter += 1
         
-        
-        if i % 10 == 0:
+        if i % 100 == 0:
             agent.epsilon_decay -= 0.01
 
             if agent.epsilon > 0:
                 agent.epsilon = agent.epsilon * agent.epsilon_decay
                 
             total = 0
-            for x in arr:
+            for x in sessionScore:
                 total += x
-            arr = np.zeros(10, dtype=int)
-            means = total/10
+            sessionScore = np.zeros(100, dtype=int)
+            sessionCounter = 0;
+            means = total/100
             
-            list[plot_tenths] = means
+            scoreArray[plot_tenths] = means
             plot_tenths += 1
             counter = 0
-        arr[counter] = score
+        sessionScore[counter] = score
         counter += 1
         game.game_reset()
     
-    # x axis values
-    x = np.arange(1, 4)
-    # corresponding y axis values
-    y = list
+    # X = försök
+    x = np.array([100,200,300,400,500,600,700,800,900,1000])
+
+    #
+    y = scoreArray
     
     # plotting the points 
     plt.plot(x, y)

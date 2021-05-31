@@ -30,7 +30,7 @@ SPEED = 20
 
 class SnakeGame:
     
-    def __init__(self, w=80, h=80):
+    def __init__(self, w=240, h=240):
         self.w = w
         self.h = h
         # init display
@@ -99,7 +99,6 @@ class SnakeGame:
             reward = 10
             self.score += 1
             self._place_food()
-            self.snake.pop()
         elif(abs((previous_head_location.x + previous_head_location.y) - (self.food.x + self.food.y)) > abs((self.head.x + self.head.y) - (self.food.x + self.food.y))):
             reward += 1
             self.snake.pop()
@@ -143,9 +142,9 @@ class SnakeGame:
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         index = clock_wise.index(self.direction)
 
-        if np.array_equal(action, [1,0,0]):
+        if action == 0:
             new_direction = clock_wise[index]
-        elif np.array_equal(action, [0,1,0]):
+        elif action == 1:
             next_index = (index + 1) % 4
             new_direction = clock_wise[next_index]
         else:
@@ -156,12 +155,16 @@ class SnakeGame:
         x = self.head.x
         y = self.head.y
         if self.direction == Direction.RIGHT:
+            #print("DIRECTION RIGHT")
             x += BLOCK_SIZE
         elif self.direction == Direction.LEFT:
+            #print("DIRECTION LEFT")
             x -= BLOCK_SIZE
         elif self.direction == Direction.DOWN:
+            #print("DIRECTION DOWN")
             y += BLOCK_SIZE
         elif self.direction == Direction.UP:
+            #print("DIRECTION UP")
             y -= BLOCK_SIZE
             
         self.head = Point(x, y)

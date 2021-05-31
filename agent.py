@@ -148,7 +148,7 @@ def train():
         game.game_reset()
     
     # x axis values
-    x = np.zeros(4, dtype=int)
+    x = np.arange(1, 4)
     # corresponding y axis values
     y = list
     

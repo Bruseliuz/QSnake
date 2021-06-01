@@ -68,17 +68,7 @@ class SnakeGame:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            #if event.type == pygame.KEYDOWN:
-            #    if event.key == pygame.K_LEFT:
-            #        self.direction = Direction.LEFT
-            #    elif event.key == pygame.K_RIGHT:
-            #        self.direction = Direction.RIGHT
-            #    elif event.key == pygame.K_UP:
-            #        self.direction = Direction.UP
-            #    elif event.key == pygame.K_DOWN:
-            #        self.direction = Direction.DOWN
-        
-        previous_head_location = self.head
+
         # 2. move
         self._move(action) # update the head
         self.snake.insert(0, self.head)
@@ -86,7 +76,7 @@ class SnakeGame:
         # 3. check if game over
         reward = 0
         game_over = False
-        if self.is_collision():
+        if self.is_collision() or self.frame_iteration > 100*len(self.snake):
             reward = -10
             game_over = True
             return reward, game_over, self.score
@@ -94,6 +84,7 @@ class SnakeGame:
         
         #print(self.food - self.head)  
         
+        previous_head_location = self.head
         # 4. place new food or just move
         if self.head == self.food:
             reward = 10

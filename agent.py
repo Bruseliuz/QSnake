@@ -14,7 +14,7 @@ class Agent:
 
     def __init__(self, counts=None):
         self.q_values = np.zeros((2**11,3))
-        self.epsilon = 0.01
+        self.epsilon = 0.1
         self.epsilon_decay = 0.9
 
     def get_state(self, game):
@@ -80,6 +80,7 @@ class Agent:
 
             #return_move[np.argmax(q_values[self.get_state(game),:])] = 1
         else: 
+            print("GOING RANDOM")
             return_move = random.randint(0,2)
 
         return return_move

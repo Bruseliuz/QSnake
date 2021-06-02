@@ -1,22 +1,25 @@
 from matplotlib import pyplot as plt 
 import random
 import numpy as np
+from numpy.core.fromnumeric import compress
+from snake_game import SnakeGame, Direction, Point
 
-from collections import deque
-from snake_game_human import SnakeGame, Direction, Point
+# Antal episoder ormen kör
+num_episodes = 500
 
-gamma = 0.99
-num_episodes = 1000
+# Discount värde för Bellman's ekvation
 discount = 0.8
-learn_rate = 0.9
 
 class Agent:
 
-    def __init__(self, counts=None):
+    def __init__(self):
         self.q_values = np.zeros((2**11,3))
+
+        # Epsilon för epsilon-greedy
         self.epsilon = 0.1
         self.epsilon_decay = 0.9
 
+    # Hämta tillståndet. Tillstånd baserat på https://github.com/python-engineer/snake-ai-pytorch
     def get_state(self, game):
         head = game.snake[0]
         head_left = Point(head.x - 20, head.y)
@@ -31,32 +34,31 @@ class Agent:
 
 
         state = [
-            #Danger straight
+            #Fara rakt fram
             (direction_right and game.is_collision(head_right)) or
             (direction_left and game.is_collision(head_left)) or
             (direction_up and game.is_collision(head_up)) or
             (direction_down and game.is_collision(head_down)),
         
-            #Danger right
+            #Fara till höger
             (direction_right and game.is_collision(head_down)) or
             (direction_left and game.is_collision(head_up)) or
             (direction_up and game.is_collision(head_right)) or
             (direction_down and game.is_collision(head_left)),
 
-            #Danger Left
+            #Fara till vänster
             (direction_right and game.is_collision(head_up)) or
             (direction_left and game.is_collision(head_down)) or
             (direction_up and game.is_collision(head_left)) or
             (direction_down and game.is_collision(head_right)),
 
-            #Move direction
+            #Vilket håll är agenten påväg
             direction_left,
             direction_right,
             direction_up,
             direction_down,
             
-            #Food location
-
+            #Var är maten
             game.food.x < game.head.x,
             game.food.x > game.head.x,
             game.food.y < game.head.y,
@@ -64,112 +66,141 @@ class Agent:
         ]
         return np.array(state, dtype=int)
 
+    # Generera och returnera unika nummer för varje tillstånd
     def get_state_number(self, game):
         state_number = 0
         for i in range(11):
             state_number += 2**i*self.get_state(game)[i]
         return state_number
 
+    # Epsilon-greedy
     # Returnerar bästa action baserat på q_values-värden, om random är mindre än epsilon: returnera random action.
-    def get_next_action(self, game, state):
+    def get_next_action(self, state):
         return_move = 0
         if random.uniform(0,1) > self.epsilon:
             possible_qs = self.q_values[state,:]
-            #print(possible_qs)
             return_move = np.argmax(possible_qs)
-
-            #return_move[np.argmax(q_values[self.get_state(game),:])] = 1
         else: 
-            print("GOING RANDOM")
             return_move = random.randint(0,2)
 
         return return_move
 
-    def train_memory(self, state, action, reward, next_state, done):
-        pass
-        
-
+# Denna metod är delvis inspirerad av https://github.com/python-engineer/snake-ai-pytorch/blob/main/agent.py
 def train():
-    highest_score = 0
-    
-    scoreArray = np.array([0,0,0,0,0,0,0,0,0,0])
-    sessionScore = np.zeros(100, dtype=int)
+
+    scoreArray = np.zeros(50, dtype=np.double)
+    sessionScore = np.zeros(20, dtype=int)
     sessionCounter = 0
     counter = 0
     plot_tenths = 0
-    #for i in range(num_episodes):
-
     agent = Agent()
 
     for i in range(num_episodes):
 
         done = False
+
+        # Initiera SnakeGame-objektet
         game = SnakeGame()
-        state = agent.get_state_number(game)
-        #done = False
-        while not done:
+
         # Hämta gamla statet
+        state = agent.get_state_number(game)
+
+        while not done:
+
             # Hämta nästa action
-            move = agent.get_next_action(game, state)
+            move = agent.get_next_action(state)
 
             # Utför action
             reward, done, score = game.play_step(move)
 
-            if (score > highest_score):
-                highest_score = score
-
             # Hämta nya statet
             state_new = agent.get_state_number(game)
+
+            # Räkna ut och lagra Q för det state-action paret
             agent.q_values[state, move] = reward + discount * np.max(agent.q_values[state_new, :])
-            #print(reward + discount * np.max(q_values[state_new, :]))
-            
-            #print(q_values[state_new, move])
+
+            # Gå vidare med nästa tillstånd
             state = state_new
-
-
-        print(i)
+        
+        # Lagra score för plottning
         sessionScore[sessionCounter] = score
-        print(score, " Added to session")
         sessionCounter += 1
         
-        if i % 100 == 0:
-            agent.epsilon_decay -= 0.01
-
-            if agent.epsilon > 0:
-                agent.epsilon = agent.epsilon * agent.epsilon_decay
-                
+        # Plotting uträkningar
+        if i % 20 == 0:     
             total = 0
             for x in sessionScore:
                 total += x
-            sessionScore = np.zeros(100, dtype=int)
+            sessionScore = np.zeros(20, dtype=int)
             sessionCounter = 0;
-            means = total/100
+            means = total/20
             
             scoreArray[plot_tenths] = means
             plot_tenths += 1
             counter = 0
         sessionScore[counter] = score
         counter += 1
+
+        # Sänk epsilon-värdet ju mer agenten har kört för att minska "randomness" i val av action
+        if agent.epsilon > 0 and i % 25 == 0:
+                agent.epsilon = agent.epsilon * agent.epsilon_decay
+
         game.game_reset()
     
-    # X = försök
-    x = np.array([100,200,300,400,500,600,700,800,900,1000])
+    # Visa plot
+    plot_score(scoreArray)
 
-    #
-    y = scoreArray
+
+def plot_score(scoreArray):
+
+    compressed = compress(scoreArray>0, scoreArray)
+
+    if len(compressed) < 6:
+        plt.plot(np.array([20,40,60,80,100]), compressed)
+    elif len(compressed) < 7:
+        plt.plot(np.array([20,40,60,80,100,120]), compressed)
+    elif len(compressed) < 8:
+        plt.plot(np.array([20,40,60,80,100,120,140]), compressed)
+    elif len(compressed) < 9:
+        plt.plot(np.array([20,40,60,80,100,120,140,160]), compressed)
+    elif len(compressed) < 10:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180]), compressed)
+    elif len(compressed) < 11:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200]), compressed)
+    elif len(compressed) < 12:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220]), compressed)
+    elif len(compressed) < 13:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240]), compressed)
+    elif len(compressed) < 14:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260]), compressed)
+    elif len(compressed) < 15:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280]), compressed)
+    elif len(compressed) < 16:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300]), compressed)
+    elif len(compressed) < 17:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320]), compressed)
+    elif len(compressed) < 18:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340]), compressed)
+    elif len(compressed) < 19:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360]), compressed)
+    elif len(compressed) < 20:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360, 380]), compressed)
+    elif len(compressed) < 21:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400]), compressed)
+    elif len(compressed) < 22:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420]), compressed)
+    elif len(compressed) < 23:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440]), compressed)
+    elif len(compressed) < 24:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460]), compressed)
+    elif len(compressed) < 25:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460,480]), compressed)
+    else:
+        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460,480,500]), compressed)
     
-    # plotting the points 
-    plt.plot(x, y)
-    
-    # naming the x axis
     plt.xlabel('Attempts')
-    # naming the y axis
     plt.ylabel('Average points')
-    
-    # giving a title to my graph
-    plt.title('Snake god')
-    
-    # function to show the plot
+    plt.title('QSnake')
     plt.show()
          
     

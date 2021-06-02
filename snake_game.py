@@ -1,12 +1,18 @@
+# Grupp 10
+# Nils Bruzelius
+# Einar Edberg
+# Philip Rönnmark
+#
+# Grundsystemet är taget från https://github.com/python-engineer/snake-ai-pytorch
+#
+
 import pygame
 import random
 from enum import Enum
 from collections import namedtuple
-import numpy as np
 
 pygame.init()
 font = pygame.font.Font('arial.ttf', 12)
-#font = pygame.font.SysFont('arial', 25)
 
 class Direction(Enum):
     RIGHT = 1
@@ -30,18 +36,16 @@ SPEED = 20
 
 class SnakeGame:
     
-    def __init__(self, w=240, h=240):
+    def __init__(self, w=80, h=80):
         self.w = w
         self.h = h
-        # init display
         self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
+        pygame.display.set_caption('QSnake')
         self.clock = pygame.time.Clock()
         self.game_reset()
         
-       
+    # Initeiera spelet
     def game_reset(self):
-        # init game state
         self.direction = Direction.RIGHT
         
         self.head = Point(self.w/2, self.h/2)
@@ -53,7 +57,8 @@ class SnakeGame:
         self.food = None
         self._place_food()
         self.frame_iteration = 0    
-        
+    
+    # Placera ut mat
     def _place_food(self):
         x = random.randint(0, (self.w-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE 
         y = random.randint(0, (self.h-BLOCK_SIZE )//BLOCK_SIZE )*BLOCK_SIZE
@@ -61,19 +66,20 @@ class SnakeGame:
         if self.food in self.snake:
             self._place_food()
         
+    # Agenten utför en action
     def play_step(self, action):
         self.frame_iteration += 1
-        # 1. collect user input
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
-        # 2. move
+        # 1. Gå
         self._move(action) # update the head
         self.snake.insert(0, self.head)
         
-        # 3. check if game over
+        # 2. Kolla om spelet är över pga krock eller för lång tid går i samma försök
         reward = 0
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
@@ -82,40 +88,45 @@ class SnakeGame:
             return reward, game_over, self.score
             
         
-        #print(self.food - self.head)  
         
         previous_head_location = self.head
-        # 4. place new food or just move
+        # 3. placera ny mat eller bara gå
         if self.head == self.food:
             reward = 10
             self.score += 1
-            self._place_food()
+            try:
+                self._place_food()
+            except:
+                self.game_reset()
+        # Jämför absolutvärdet mellan ormens huvud's tidigare position och ormens huvud's nuvarande position och maten
         elif(abs((previous_head_location.x + previous_head_location.y) - (self.food.x + self.food.y)) > abs((self.head.x + self.head.y) - (self.food.x + self.food.y))):
-            reward += 1
+            reward = 1
             self.snake.pop()
         else:
-            reward -= 1
+            reward = -1
             self.snake.pop()
         
         
-        # 5. update ui and clock
+        # 4. update ui and clock
         self._update_ui()
         self.clock.tick(SPEED)
-        # 6. return game over and score
+        # 5. return game over and score
         return reward, game_over, self.score
     
+    # Kollar om en Point är på kollisionskurs
     def is_collision(self, pt=None):
         if pt is None:
             pt = self.head
-        # hits boundary
+        # Träffar kanten
         if pt.x > self.w - BLOCK_SIZE or pt.x < 0 or pt.y > self.h - BLOCK_SIZE or pt.y < 0:
             return True
-        # hits itself
+        # Träffar Sig själv
         if pt in self.snake[1:]:
             return True
         
         return False
-        
+    
+    # Uppdaterar grafiken
     def _update_ui(self):
         self.display.fill(BLACK)
         
@@ -125,10 +136,11 @@ class SnakeGame:
             
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
         
-        text = font.render("Score: " + str(self.score) + " Iterations: " + str(self.frame_iteration), True, WHITE)
+        text = font.render("Score: " + str(self.score), True, WHITE)
         self.display.blit(text, [0, 0])
         pygame.display.flip()
-        
+    
+    # Beräkna vilket håll ormen skall röra sig baserat på en action
     def _move(self, action):
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         index = clock_wise.index(self.direction)

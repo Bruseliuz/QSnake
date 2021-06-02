@@ -1,7 +1,6 @@
 from matplotlib import pyplot as plt 
 import random
 import numpy as np
-from numpy.core.fromnumeric import compress
 from snake_game import SnakeGame, Direction, Point
 
 # Antal episoder ormen kör
@@ -153,50 +152,7 @@ def train():
 
 def plot_score(scoreArray):
 
-    compressed = compress(scoreArray>0, scoreArray)
-
-    if len(compressed) < 6:
-        plt.plot(np.array([20,40,60,80,100]), compressed)
-    elif len(compressed) < 7:
-        plt.plot(np.array([20,40,60,80,100,120]), compressed)
-    elif len(compressed) < 8:
-        plt.plot(np.array([20,40,60,80,100,120,140]), compressed)
-    elif len(compressed) < 9:
-        plt.plot(np.array([20,40,60,80,100,120,140,160]), compressed)
-    elif len(compressed) < 10:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180]), compressed)
-    elif len(compressed) < 11:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200]), compressed)
-    elif len(compressed) < 12:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220]), compressed)
-    elif len(compressed) < 13:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240]), compressed)
-    elif len(compressed) < 14:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260]), compressed)
-    elif len(compressed) < 15:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280]), compressed)
-    elif len(compressed) < 16:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300]), compressed)
-    elif len(compressed) < 17:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320]), compressed)
-    elif len(compressed) < 18:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340]), compressed)
-    elif len(compressed) < 19:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360]), compressed)
-    elif len(compressed) < 20:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360, 380]), compressed)
-    elif len(compressed) < 21:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400]), compressed)
-    elif len(compressed) < 22:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420]), compressed)
-    elif len(compressed) < 23:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440]), compressed)
-    elif len(compressed) < 24:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460]), compressed)
-    elif len(compressed) < 25:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460,480]), compressed)
-    else:
-        plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460,480,500]), compressed)
+    plt.plot(np.array([20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460,480,500]), scoreArray)
     
     plt.xlabel('Attempts')
     plt.ylabel('Average points')

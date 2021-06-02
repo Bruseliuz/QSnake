@@ -84,7 +84,8 @@ class Agent:
 
         return return_move
 
-# Denna metod är delvis inspirerad av https://github.com/python-engineer/snake-ai-pytorch/blob/main/agent.py
+# Denna metod är delvis inspirerad av https://github.com/python-engineer/snake-ai-pytorch/blob/main/agent.py 
+# och https://www.analyticsvidhya.com/blog/2021/04/q-learning-algorithm-with-step-by-step-implementation-using-python/
 def train():
 
     scoreArray = np.zeros(50, dtype=np.double)

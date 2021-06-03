@@ -118,7 +118,7 @@ def train():
             state_new = agent.get_state_number(game)
 
             # Räkna ut och lagra Q för det state-action paret med hjälp av Bellmans ekvation
-            agent.q_values[state, move] = agent.learning_rate * (reward + discount * np.max(agent.q_values[state_new, :]))
+            agent.q_values[state, move] = agent.q_values[state, move] + agent.learning_rate * (reward + discount * np.max(agent.q_values[state_new, :]) - agent.q_values[state, move])
 
             # Gå vidare med nästa tillstånd
             state = state_new

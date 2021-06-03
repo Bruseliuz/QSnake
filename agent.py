@@ -7,7 +7,7 @@ from snake_game import SnakeGame, Direction, Point
 num_episodes = 500
 
 # Discount värde för Bellman's ekvation
-discount = 0.8
+discount = 0.98
 
 class Agent:
 
@@ -17,6 +17,7 @@ class Agent:
         # Epsilon för epsilon-greedy
         self.epsilon = 0.1
         self.epsilon_decay = 0.9
+        self.learning_rate = 0.9
 
     # Hämta tillståndet. Tillstånd baserat på https://github.com/python-engineer/snake-ai-pytorch
     def get_state(self, game):
@@ -88,7 +89,7 @@ class Agent:
 # och https://www.analyticsvidhya.com/blog/2021/04/q-learning-algorithm-with-step-by-step-implementation-using-python/
 def train():
 
-    scoreArray = np.zeros(50, dtype=np.double)
+    scoreArray = np.zeros(25, dtype=np.double)
     sessionScore = np.zeros(20, dtype=int)
     sessionCounter = 0
     counter = 0
@@ -116,8 +117,8 @@ def train():
             # Hämta nya statet
             state_new = agent.get_state_number(game)
 
-            # Räkna ut och lagra Q för det state-action paret
-            agent.q_values[state, move] = reward + discount * np.max(agent.q_values[state_new, :])
+            # Räkna ut och lagra Q för det state-action paret med hjälp av Bellmans ekvation
+            agent.q_values[state, move] = agent.learning_rate * (reward + discount * np.max(agent.q_values[state_new, :]))
 
             # Gå vidare med nästa tillstånd
             state = state_new
